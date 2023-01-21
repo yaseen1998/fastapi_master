@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from typing import List, Optional
+from fastapi import APIRouter, Cookie, Form, Header
 from fastapi.responses import Response,HTMLResponse,PlainTextResponse
 
 
@@ -11,10 +12,29 @@ router = APIRouter(
 product = ['watch','camera','laptop','mobile']
 
 @router.get('/read')
-def get_al_product():
+def get_al_product(response:Response,
+    custom_header:Optional[str]=Header(None),
+                   head:Optional[List[str]]=Header(None)
+                   ):
+    if head:
+        response.headers['x-custom-header'] = ", ".join(head)
+    
     data = " ".join(product)
     return Response(content=data,status_code=200,media_type='text/plain')
 
+@router.get('/cookie')
+def get_cookie(custom_cookie:Optional[str]=Cookie(None)):
+    if custom_cookie:
+        return {'message':f'your cookie is {custom_cookie}'}
+    response = Response(content='hello',status_code=200,media_type='text/plain')
+    response.set_cookie(key='custom_cookie',value='hello')
+    
+    return {'message':'hello'}
+
+
+@router.post('/form')
+def create_form(name:str=Form(...)):
+    return {'message':f'hello {name}'}
 
 @router.get("{id}",responses={
     200:{"model":str,

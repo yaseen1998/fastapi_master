@@ -3,14 +3,15 @@ from exception import StoryException
 from router import blog_get,blog_post,user,artical,product
 from db import models
 from db.database import engine
-
+from auth import authintaction
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 app.include_router(user.router)
 app.include_router(artical.router)
 app.include_router(product.router)
 app.include_router(blog_get.router)
 app.include_router(blog_post.router)
-
+app.include_router(authintaction.router)
 
 @app.get('/')
 def index():
@@ -34,3 +35,11 @@ def story_exception_handler(request:Request,exc:StoryException):
 #     )
     
 models.Base.metadata.create_all(engine)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
