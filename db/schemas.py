@@ -44,3 +44,5 @@ class ArticalDisplay(BaseModel):
     user:UserArtical
     class Config():
         orm_mode=True
+
+

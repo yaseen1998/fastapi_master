@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Cookie, Form, Header
 from fastapi.responses import Response,HTMLResponse,PlainTextResponse
-
+import time
 
 
 router = APIRouter(
@@ -22,8 +22,12 @@ def get_al_product(response:Response,
     data = " ".join(product)
     return Response(content=data,status_code=200,media_type='text/plain')
 
+async def timeConsumingFunction():
+    time.sleep(5)
+
 @router.get('/cookie')
-def get_cookie(custom_cookie:Optional[str]=Cookie(None)):
+async def get_cookie(custom_cookie:Optional[str]=Cookie(None)):
+    await timeConsumingFunction()
     if custom_cookie:
         return {'message':f'your cookie is {custom_cookie}'}
     response = Response(content='hello',status_code=200,media_type='text/plain')

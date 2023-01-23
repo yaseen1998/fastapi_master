@@ -6,7 +6,7 @@ from db.database import engine
 from auth import authintaction
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
+from templates import templates
 
 app = FastAPI()
 app.include_router(user.router)
@@ -16,6 +16,7 @@ app.include_router(blog_get.router)
 app.include_router(blog_post.router)
 app.include_router(authintaction.router)
 app.include_router(file.router)
+app.include_router(templates.router)
 
 @app.get('/')
 def index():
@@ -49,3 +50,4 @@ app.add_middleware(
 )
 
 app.mount("/files",StaticFiles(directory="files"),name="files")
+app.mount("/templates/static",StaticFiles(directory="templates/static"),name="static")
