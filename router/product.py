@@ -34,7 +34,7 @@ def get_cookie(custom_cookie:Optional[str]=Cookie(None)):
 
 @router.post('/form')
 def create_form(name:str=Form(...)):
-    return {'message':f'hello {name}'}
+    return {'message':f'hello {name}'} 
 
 @router.get("{id}",responses={
     200:{"model":str,

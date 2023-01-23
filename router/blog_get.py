@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Optional
 from fastapi import APIRouter, Depends, Response,status
+from custom_log import log
 
 from router.blog_post import required_functionality
 
@@ -20,6 +21,7 @@ def bloc_all():
 # order is import all is string but id is int 
 @router.get('/{id}',tags=['id'])
 def bloc(id:int,response:Response):
+    log(tag="bloc",message=f"retrive bloc {id}")
     if id>5:
         response.status_code = status.HTTP_404_NOT_FOUND
         return {"error":f"bloc {id}"}
