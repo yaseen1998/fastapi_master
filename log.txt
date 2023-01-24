@@ -1,2 +1,9 @@
 bloc:retrive bloc 4
 bloc:retrive bloc 8
+info:template called
+info:template called 5
+test:teststs
+test:teststs
+	request:http://127.0.0.1:8000/dependencies?test=test&tag=test&message=teststs&separator=%3A%3A%3A%3B
+tag:tags
+	request:http://127.0.0.1:8000/dependencies?test=test&tag=tag&message=tags&separator=%3A

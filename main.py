@@ -1,12 +1,16 @@
 from fastapi import FastAPI, HTTPException, Request,responses,status
 from exception import StoryException
-from router import blog_get,blog_post,user,artical,product,file
+from router import blog_get,blog_post,user,artical,product,file,dependencies
 from db import models
 from db.database import engine
 from auth import authintaction
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from templates import templates
+import time
+from fastapi.responses import HTMLResponse
+from client import html
+from fastapi.websockets import WebSocket
 
 app = FastAPI()
 app.include_router(user.router)
@@ -17,6 +21,7 @@ app.include_router(blog_post.router)
 app.include_router(authintaction.router)
 app.include_router(file.router)
 app.include_router(templates.router)
+app.include_router(dependencies.router) 
 
 @app.get('/')
 def index():
@@ -30,6 +35,20 @@ def story_exception_handler(request:Request,exc:StoryException):
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"message":f"{exc.msg}"}
     )
+    
+@app.get("/socket")
+async def get_exception():
+    return HTMLResponse(html)
+
+clients = []
+@app.websocket("/chat")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    clients.append(websocket)
+    while True:
+        data = await websocket.receive_text()
+        for client in clients:
+            await client.send_text(f"Message text was: {data}")
 
 
 # @app.exception_handler(HTTPException)
@@ -49,5 +68,11 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    response.headers["duration"] = str(time.time() - start_time)
+    return response
 app.mount("/files",StaticFiles(directory="files"),name="files")
 app.mount("/templates/static",StaticFiles(directory="templates/static"),name="static")
