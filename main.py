@@ -27,6 +27,7 @@ app.include_router(dependencies.router)
 def index():
     return {"message":'hello world'}
 
+
     
 
 @app.exception_handler(StoryException)
