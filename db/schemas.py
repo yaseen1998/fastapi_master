@@ -1,6 +1,6 @@
 from typing import List
 from pydantic import BaseModel
-
+import datetime
 
 class ArticalUser(BaseModel):
     title:str
@@ -46,3 +46,54 @@ class ArticalDisplay(BaseModel):
         orm_mode=True
 
 
+
+class PostBase(BaseModel):
+    title:str
+    content:str
+    creator:str
+    image_url:str
+    
+
+class PostDisplay(BaseModel):
+    id:int
+    title:str
+    content:str
+    creator:str
+    image_url:str
+    timstamp:datetime.datetime
+    class Config():
+        orm_mode=True
+
+
+class PostBase2(BaseModel):
+    image_url:str
+    image_url_type:str
+    caption:str
+    creator_id:int
+    title:str
+
+class Comment(BaseModel):
+    username:str
+    text:str
+    post_id:int
+    timestamp:datetime.datetime
+    class Config():
+        orm_mode=True
+        
+class PostDisplay2(BaseModel):
+    id:int
+    image_url:str
+    image_url_type:str
+    caption:str
+    timestamp:datetime.datetime
+    user:UserArtical
+    comments:List[Comment] = [] 
+    class Config():
+        orm_mode=True
+        
+
+
+class CommanBase(BaseModel):
+    username:str
+    text:str
+    post_id:int

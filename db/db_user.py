@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm.session import Session
 from db.hash import Hash
 from db.models import User
@@ -24,6 +25,12 @@ def get_all_users(db:Session):
 
 def get_user_by_id(db:Session,id:int):
     return db.query(User).get(id)
+
+def get_user_by_username(db:Session,username:str):
+    user = db.query(User).filter(User.username==username).first()
+    if not user:
+        raise HTTPException(status_code=404,detail=f"User with username {username} not found")
+    return user
 
 def  update_user(db:Session,id:int,request:UserBase):
     hashPwd = Hash()
