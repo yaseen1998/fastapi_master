@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse
 from client import html
 from fastapi.websockets import WebSocket
 
+
 app = FastAPI()
 app.include_router(user.router)
 app.include_router(post.router)
@@ -70,6 +71,7 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
