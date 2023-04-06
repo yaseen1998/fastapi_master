@@ -1,10 +1,19 @@
-from fastapi import FastAPI, Header,Query,Path,Body,Cookie
+from fastapi import FastAPI, Header,Query,Path,Body,Cookie, Request,status
 from typing import Union, Optional
 from pydantic import BaseModel,Field,HttpUrl,Required
 from enum import Enum
 from datetime import datetime, time, timedelta
 from uuid import UUID
 from yaseen import response_model,extra_models,request_file
+from yaseen.handle_error import UnicornException
+from fastapi.responses import JSONResponse,PlainTextResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.encoders import jsonable_encoder
+from fastapi.exception_handlers import (
+    http_exception_handler,
+    request_validation_exception_handler,
+)
 app = FastAPI()
 app.include_router(response_model.router)
 app.include_router(extra_models.router)
@@ -175,3 +184,36 @@ async def read_cookies(ads_id: str | None = Cookie(default=None)):
 @app.get("/headers")
 async def header(user_agent: str | None = Header(default=None),x_token: list[str] | None = Header(default=None)):
     return {"User-Agent": user_agent, "X-Token values": x_token}
+
+
+@app.exception_handler(UnicornException)
+async def unicorn_exception_handler(request: Request, exc: UnicornException):
+    return JSONResponse(
+        status_code=418,
+        content={"message": f"Oops! {exc.name} did something. There goes a rainbow..."},
+    )
+
+
+# @app.exception_handler(StarletteHTTPException) # override default exception handler
+# async def http_exception_handler(request, exc):
+#     print(f"HTTPException: {exc.detail} ({exc.status_code})")
+#     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+# @app.exception_handler(RequestValidationError) # override default exception handler for validation errors
+# async def validation_exception_handler(request, exc):
+#     print(f"RequestValidationError: {exc}")
+#     # return PlainTextResponse(str(exc), status_code=400)
+#     return JSONResponse(
+#         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+#         content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+#     )
+
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request, exc):
+    print(f"OMG! An HTTP error!: {repr(exc)}")
+    return await http_exception_handler(request, exc)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print(f"OMG! The client sent invalid data!: {exc}")
+    return await request_validation_exception_handler(request, exc)

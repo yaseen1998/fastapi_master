@@ -1,4 +1,4 @@
-from fastapi import APIRouter,status,Form
+from fastapi import APIRouter, HTTPException,status,Form
 from pydantic import BaseModel, EmailStr
 
 
@@ -68,7 +68,9 @@ items = {
 
 @router.get("/items/{item_id}", response_model=PlaneItem| CarItem, status_code=status.HTTP_200_OK)
 async def read_item(item_id: str):
-    return items[item_id]
+    if item_id not in items:
+        raise HTTPException(status_code=404, detail="Item not found", headers={"X-Error": "There goes my error"},)
+    return {"item": items[item_id]}
 
 
 @router.post("/login/")
