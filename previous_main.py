@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Header,Query,Path,Body,Cookie, Request,status
+from fastapi import Depends, FastAPI, HTTPException, Header,Query,Path,Body,Cookie, Request,status
 from typing import Union, Optional
 from pydantic import BaseModel,Field,HttpUrl,Required
 from enum import Enum
 from datetime import datetime, time, timedelta
 from uuid import UUID
-from yaseen import response_model,extra_models,request_file
+from yaseen import response_model,extra_models,request_file,Dependency,auth
 from yaseen.handle_error import UnicornException
 from fastapi.responses import JSONResponse,PlainTextResponse
 from fastapi.exceptions import RequestValidationError
@@ -14,10 +14,16 @@ from fastapi.exception_handlers import (
     http_exception_handler,
     request_validation_exception_handler,
 )
-app = FastAPI()
+async def global_verify_token(company: str = Header()):
+    if company != "yasen":
+        raise HTTPException(status_code=400, detail="company header invalid")
+
+app = FastAPI(dependencies=[Depends(global_verify_token)])
 app.include_router(response_model.router)
 app.include_router(extra_models.router)
 app.include_router(request_file.router)
+app.include_router(Dependency.router)
+app.include_router(auth.router)
 
 class Image(BaseModel):
     url: str
