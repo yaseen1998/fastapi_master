@@ -4,12 +4,16 @@ from pydantic import BaseModel,Field,HttpUrl,Required
 from enum import Enum
 from datetime import datetime, time, timedelta
 from uuid import UUID
-from yaseen import response_model,extra_models,request_file,Dependency,auth
+from yaseen import response_model,extra_models,request_file,Dependency,auth,user_router
 from yaseen.handle_error import UnicornException
 from fastapi.responses import JSONResponse,PlainTextResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
+import time as ti
+from yaseen.database import  engine
+from yaseen import user_datebase
 from fastapi.exception_handlers import (
     http_exception_handler,
     request_validation_exception_handler,
@@ -17,6 +21,8 @@ from fastapi.exception_handlers import (
 async def global_verify_token(company: str = Header()):
     if company != "yasen":
         raise HTTPException(status_code=400, detail="company header invalid")
+    
+user_datebase.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(dependencies=[Depends(global_verify_token)])
 app.include_router(response_model.router)
@@ -24,6 +30,7 @@ app.include_router(extra_models.router)
 app.include_router(request_file.router)
 app.include_router(Dependency.router)
 app.include_router(auth.router)
+app.include_router(user_router.router)
 
 class Image(BaseModel):
     url: str
@@ -223,3 +230,30 @@ async def custom_http_exception_handler(request, exc):
 async def validation_exception_handler(request, exc):
     print(f"OMG! The client sent invalid data!: {exc}")
     return await request_validation_exception_handler(request, exc)
+
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = ti.time()
+    print("start_time",start_time)
+    response = await call_next(request)
+    process_time = ti.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
